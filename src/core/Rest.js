@@ -13,9 +13,7 @@ export default class Rest {
     this.#resourceUri = uri.replace(/\/$/, '');
     this.#axiosInstance = options.axios || axios;
 
-    this.defaults = {
-      ...options,
-    };
+    this.defaults = options;
   }
 
   /**
@@ -46,6 +44,10 @@ export default class Rest {
    * @returns {Promise}
    */
   fetch(id, params = {}) {
+    params = {
+      ...this.defaults.fetch,
+
+    }
     return this.#axiosInstance.get(`${this.#resourceUri}/${id}`, { params });
   }
 
