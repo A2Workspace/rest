@@ -41,4 +41,17 @@ describe('defaults', () => {
       sortBy: 'id',
     });
   });
+
+  test('修改全域時不會動到 RestInstance', async () => {
+    rest.defaults.fetchAll.params.limit = 15;
+
+    const $rest = rest('/api/users');
+
+    expect(rest.defaults.fetchAll.params.limit).toEqual(15);
+
+    $rest.defaults.fetchAll.params.limit = 30;
+
+    // 修改後全域設置應仍為 15
+    expect(rest.defaults.fetchAll.params.limit).toEqual(15);
+  });
 });
