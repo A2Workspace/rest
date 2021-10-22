@@ -21,6 +21,7 @@ describe('fetchAll', () => {
 
     expect(mock.history.get[0].url).toEqual('/api/users');
     expect(result.data).toEqual(users);
+    expect(Array.isArray(result.data)).toBeTruthy();
   });
 
   test('With params', async () => {
