@@ -1,8 +1,9 @@
 import axios from 'axios';
+import mergeConfig from './mergeConfig';
 
 export default class Rest {
-  #resourceUri;
-  #axiosInstance;
+  #resourceURL;
+  #axios;
   #currentQuery;
 
   /**
@@ -10,8 +11,8 @@ export default class Rest {
    * @param {object} options
    */
   constructor(uri, options = {}) {
-    this.#resourceUri = uri.replace(/\/$/, '');
-    this.#axiosInstance = options.axios || axios;
+    this.#resourceURL = uri.replace(/\/$/, '');
+    this.#axios = options.axios || axios;
 
     this.defaults = options;
   }
@@ -21,21 +22,45 @@ export default class Rest {
    * @returns {Promise}
    */
   fetchAll(params) {
-    params = (typeof params === 'function')
-      ? params(this.#currentQuery)
-      : params;
+    const config = this.defaults.fetchAll;
+
+    if (typeof params === 'function') {
+      params = params(this.#currentQuery);
+    }
+
+    if (typeof params !== 'object') {
+      params = {};
+    }
+
+    params = Object.assign(params, config.params);
 
     this.#currentQuery = params;
 
-    return this.#axiosInstance.get(this.#resourceUri, { params });
+    return this.#axios.request({
+      method: config.method,
+      url: this.#resourceURL,
+      params,
+    });
   }
 
   /**
    * @param {object} data
    * @returns {Promise}
    */
-  create(data) {
-    return this.#axiosInstance.post(this.#resourceUri, data);
+  create(data = {}) {
+    const config = this.defaults.create;
+
+    if (typeof data !== 'object') {
+      data = {};
+    }
+
+    data = Object.assign(data, config.data);
+
+    return this.#axios.request({
+      method: config.method,
+      url: this.#resourceURL,
+      data,
+    });
   }
 
   /**
@@ -44,11 +69,19 @@ export default class Rest {
    * @returns {Promise}
    */
   fetch(id, params = {}) {
-    params = {
-      ...this.defaults.fetch,
+    const config = this.defaults.fetch;
 
+    if (typeof params !== 'object') {
+      params = {};
     }
-    return this.#axiosInstance.get(`${this.#resourceUri}/${id}`, { params });
+
+    params = Object.assign(params, config.params);
+
+    return this.#axios.request({
+      method: config.method,
+      url: `${this.#resourceURL}/${id}`,
+      params,
+    });
   }
 
   /**
@@ -56,15 +89,40 @@ export default class Rest {
    * @param {object} data
    * @returns {Promise}
    */
-  update(id, data) {
-    return this.#axiosInstance.post(`${this.#resourceUri}/${id}`, data);
+  update(id, data = {}) {
+    const config = this.defaults.update;
+
+    if (typeof data !== 'object') {
+      data = {};
+    }
+
+    data = Object.assign(data, config.data);
+
+    return this.#axios.request({
+      method: config.method,
+      url: `${this.#resourceURL}/${id}`,
+      data,
+    });
   }
 
   /**
    * @param {number} id
+   * @param {object} params
    * @returns {Promise}
    */
-  delete(id) {
-    return this.#axiosInstance.delete(`${this.#resourceUri}/${id}`);
+  delete(id, params = {}) {
+    const config = this.defaults.delete || {};
+
+    if (typeof params !== 'object') {
+      params = {};
+    }
+
+    params = Object.assign(params, config.params);
+
+    return this.#axios.request({
+      method: config.method,
+      url: `${this.#resourceURL}/${id}`,
+      params,
+    });
   }
 }

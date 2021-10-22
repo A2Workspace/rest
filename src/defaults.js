@@ -1,9 +1,30 @@
+import axios from 'axios';
+
 let defaults = {
-  fetchAll: {},
-  fetch: {},
-  create: {},
-  update: {},
-  delete: {},
+  fetchAll: {
+    method: 'get',
+    params: {},
+  },
+
+  fetch: {
+    method: 'get',
+    params: {},
+  },
+
+  create: {
+    method: 'post',
+    data: {},
+  },
+
+  update: {
+    method: 'put',
+    data: {},
+  },
+
+  delete: {
+    method: 'delete',
+    data: {},
+  },
 };
 
 export default defaults;
