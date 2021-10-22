@@ -37,3 +37,7 @@ export declare class Rest {
   update<T = AxiosResponse>(id: string | number, data?: object): Promise<T>;
   delete<T = AxiosResponse>(id: string | number, params?: object): Promise<T>;
 }
+
+export interface RestInstarce extends Rest {
+
+};
