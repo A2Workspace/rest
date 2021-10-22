@@ -13,7 +13,7 @@ export default class Rest {
     this.#resourceURN = parseURN(urn);
     this.#axios = options.axios;
 
-    this.defaults = options;
+    this.options = options;
   }
 
   /**
@@ -29,7 +29,7 @@ export default class Rest {
       params = {};
     }
 
-    const config = mergeConfig(this.defaults.fetchAll, { params });
+    const config = mergeConfig(this.options.fetchAll, { params });
 
     this.#currentQuery = config.params;
 
@@ -44,7 +44,7 @@ export default class Rest {
    * @returns {Promise<AxiosResponse>}
    */
   create(data = {}) {
-    const config = mergeConfig(this.defaults.create, { data });
+    const config = mergeConfig(this.options.create, { data });
 
     return this.#axios.request({
       ...config,
@@ -58,7 +58,7 @@ export default class Rest {
    * @returns {Promise<AxiosResponse>}
    */
   fetch(id, params = {}) {
-    const config = mergeConfig(this.defaults.fetch, { params });
+    const config = mergeConfig(this.options.fetch, { params });
 
     return this.#axios.request({
       ...config,
@@ -72,7 +72,7 @@ export default class Rest {
    * @returns {Promise<AxiosResponse>}
    */
   update(id, data = {}) {
-    const config = mergeConfig(this.defaults.update, { data });
+    const config = mergeConfig(this.options.update, { data });
 
     return this.#axios.request({
       ...config,
@@ -86,7 +86,7 @@ export default class Rest {
    * @returns {Promise<AxiosResponse>}
    */
   delete(id, params = {}) {
-    const config = mergeConfig(this.defaults.delete, { params });
+    const config = mergeConfig(this.options.delete, { params });
 
     return this.#axios.request({
       ...config,

@@ -28,7 +28,7 @@ export declare class Rest {
   #resourceURN: string;
   #axios: AxiosInstance;
   #currentQuery: object;
-  defaults: RestOptions;
+  options: RestOptions;
 
   constructor(urn: string, options?: RestOptions);
   fetchAll<T = AxiosResponse>(param?: object): Promise<T>;

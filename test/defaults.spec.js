@@ -30,8 +30,8 @@ describe('defaults', () => {
   test('修改 RestInstance 的預設參數', async () => {
     const $rest = rest('/api/users');
 
-    $rest.defaults.fetchAll.params.limit = 15;
-    $rest.defaults.fetchAll.params.sortBy = 'id';
+    $rest.options.fetchAll.params.limit = 15;
+    $rest.options.fetchAll.params.sortBy = 'id';
 
     await $rest.fetchAll({ page: 1 });
 
@@ -49,7 +49,7 @@ describe('defaults', () => {
 
     expect(rest.defaults.fetchAll.params.limit).toEqual(15);
 
-    $rest.defaults.fetchAll.params.limit = 30;
+    $rest.options.fetchAll.params.limit = 30;
 
     // 修改後全域設置應仍為 15
     expect(rest.defaults.fetchAll.params.limit).toEqual(15);
