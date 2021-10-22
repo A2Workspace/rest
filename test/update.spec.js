@@ -12,7 +12,7 @@ describe('update', () => {
   beforeEach(() => {
     $rest = rest('/api/users');
 
-    mock.onPost('/api/users/1').reply(200, {
+    mock.onPut('/api/users/1').reply(200, {
       status: true,
     });
   });
@@ -20,8 +20,8 @@ describe('update', () => {
   test('Basic', async () => {
     const result = await $rest.update(1, { name: 'John' });
 
-    expect(mock.history.post[0].url).toEqual('/api/users/1');
-    expect(mock.history.post[0].data).toEqual(JSON.stringify({ name: 'John' }));
+    expect(mock.history.put[0].url).toEqual('/api/users/1');
+    expect(mock.history.put[0].data).toEqual(JSON.stringify({ name: 'John' }));
     expect(result.data.status).toBeTruthy();
   });
 });
