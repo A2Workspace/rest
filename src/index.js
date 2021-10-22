@@ -2,8 +2,8 @@ import Rest from './core/Rest';
 
 import defaults from './defaults';
 
-function rest(uri, options = {}) {
-  return new Rest(uri, {
+function rest(urn, options = {}) {
+  return new Rest(urn, {
     ...defaults,
     ...options,
   });

@@ -25,11 +25,11 @@ export interface RestFetchAllConfig extends RestGetConfig {
 }
 
 export declare class Rest {
-  #resourceURL: string;
+  #resourceURN: string;
   #axios: AxiosInstance;
   #currentQuery: object;
 
-  constructor(uri: string, options?: RestOption);
+  constructor(urn: string, options?: RestOption);
   fetchAll<T = AxiosResponse>(param?: object): Promise<T>;
   fetchAll<T = AxiosResponse>(param: (currentQuery: object) => object): Promise<T>;
   create<T = AxiosResponse>(data?: object): Promise<T>;
