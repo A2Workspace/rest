@@ -1,5 +1,8 @@
-import { RestInstarce } from './core/Rest';
+import { RestInstarce, RestOptions } from './core/Rest';
 
-declare function rest(urn: string, options?: object): RestInstarce;
+declare var rest: {
+  (urn: string, options?: object): RestInstarce,
+  defaults: RestOptions,
+};
 
 export default rest;

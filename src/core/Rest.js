@@ -7,7 +7,7 @@ export default class Rest {
 
   /**
    * @param {string} urn
-   * @param {RestOption} options
+   * @param {RestOptions} options
    */
   constructor(urn, options = {}) {
     this.#resourceURN = parseURN(urn);

@@ -27,7 +27,7 @@ describe('defaults', () => {
     });
   });
 
-  test('設定請求預設參數', async () => {
+  test('修改 RestInstance 的預設參數', async () => {
     const $rest = rest('/api/users');
 
     $rest.defaults.fetchAll.params.limit = 15;

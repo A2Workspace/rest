@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
 
-export interface RestOption {
+export interface RestOptions {
   axios: AxiosInstance;
   fetchAll?: RestFetchAllConfig;
   create?: RestPostConfig;
@@ -29,7 +29,7 @@ export declare class Rest {
   #axios: AxiosInstance;
   #currentQuery: object;
 
-  constructor(urn: string, options?: RestOption);
+  constructor(urn: string, options?: RestOptions);
   fetchAll<T = AxiosResponse>(param?: object): Promise<T>;
   fetchAll<T = AxiosResponse>(param: (currentQuery: object) => object): Promise<T>;
   create<T = AxiosResponse>(data?: object): Promise<T>;
