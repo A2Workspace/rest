@@ -28,6 +28,7 @@ export declare class Rest {
   #resourceURN: string;
   #axios: AxiosInstance;
   #currentQuery: object;
+  defaults: RestOptions;
 
   constructor(urn: string, options?: RestOptions);
   fetchAll<T = AxiosResponse>(param?: object): Promise<T>;
@@ -40,4 +41,4 @@ export declare class Rest {
 
 export interface RestInstarce extends Rest {
 
-};
+}
