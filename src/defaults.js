@@ -1,12 +1,9 @@
 import axios from 'axios';
 
 let defaults = {
-  fetchAll: {
-    method: 'get',
-    params: {},
-  },
+  axios,
 
-  fetch: {
+  fetchAll: {
     method: 'get',
     params: {},
   },
@@ -14,6 +11,11 @@ let defaults = {
   create: {
     method: 'post',
     data: {},
+  },
+
+  fetch: {
+    method: 'get',
+    params: {},
   },
 
   update: {

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import mergeConfig from './mergeConfig';
 
 export default class Rest {
@@ -12,7 +11,7 @@ export default class Rest {
    */
   constructor(uri, options = {}) {
     this.#resourceURL = uri.replace(/\/$/, '');
-    this.#axios = options.axios || axios;
+    this.#axios = options.axios;
 
     this.defaults = options;
   }
