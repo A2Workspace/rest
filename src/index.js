@@ -1,99 +1,37 @@
+import Rest from './core/Rest';
 
-export default function rest(uri, axiosInstance) {
-  let axios = axiosInstance || require('axios');
+import defaults from './defaults';
 
-  const BASE_URI = uri.replace(/\/$/, '');
+function rest(urn, options = {}) {
+  return new Rest(urn, {
+    ...cloneDefaultConfig(rest.defaults),
+    ...fastDeepClone(options),
+  });
+}
 
-  let currentQuery = {};
-  let prepareHandler = function (params) {
-    return params;
-  };
+rest.defaults = defaults;
+
+/**
+ * @param {Object} source
+ * @returns {Object}
+ */
+function cloneDefaultConfig(source) {
+  let config = (function ({ axios, ...config }) {
+    return config;
+  })(source);
 
   return {
-    /**
-     * @returns {(object)}
-     */
-    get query() {
-      return currentQuery || {};
-    },
-
-    /**
-     * @param {Axios} axiosInstance
-     */
-    axios(axiosInstance) {
-      if (axiosInstance) {
-        axios = axiosInstance;
-      }
-
-      return this;
-    },
-
-    /**
-     * @callback onPrepare
-     * @param {object} params
-     */
-    /**
-     * @param {onPrepare} callback
-     */
-    prepare(callback) {
-      if (typeof callback === 'function') {
-        prepareHandler = callback;
-      }
-
-      return this;
-    },
-
-    /**
-     * @param {(function|object|null)} callback
-     * @returns {Promise}
-     */
-    fetchAll(callback) {
-      let params = (function () {
-        if (typeof callback === 'function') {
-          return callback(currentQuery);
-        }
-
-        return callback;
-      })();
-
-      currentQuery = params;
-      params = prepareHandler(currentQuery);
-
-      return axios.get(BASE_URI, { params });
-    },
-
-    /**
-     * @param {object} data
-     * @returns {Promise}
-     */
-    create(data) {
-      return axios.post(BASE_URI, data);
-    },
-
-    /**
-     * @param {number} id
-     * @param {object} params
-     * @returns {Promise}
-     */
-    fetch(id, params = {}) {
-      return axios.get(`${BASE_URI}/${id}`, { params });
-    },
-
-    /**
-     * @param {number} id
-     * @param {object} data
-     * @returns {Promise}
-     */
-    update(id, data) {
-      return axios.post(`${BASE_URI}/${id}`, data);
-    },
-
-    /**
-     * @param {number} id
-     * @returns {Promise}
-     */
-    delete(id) {
-      return axios.delete(`${BASE_URI}/${id}`);
-    },
-  };
+    ...fastDeepClone(config),
+    axios: source.axios,
+  }
 }
+
+/**
+ * @param {Object} source
+ * @returns {Object}
+ */
+function fastDeepClone(object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
+export default rest;

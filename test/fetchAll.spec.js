@@ -40,12 +40,4 @@ describe('fetchAll', () => {
 
     expect(mock.history.get[1].params).toEqual({ page: 1, sort: 'name' });
   });
-
-  test('With prepare', async () => {
-    $rest.prepare((params) => ({ ...params, limit: 15 }));
-
-    await $rest.fetchAll({ page: 1 });
-
-    expect(mock.history.get[0].params).toEqual({ page: 1, limit: 15 });
-  });
 });
