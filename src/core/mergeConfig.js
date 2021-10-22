@@ -1,3 +1,4 @@
+
 const mergeMap = {
   method: '',
   url: '',
@@ -12,7 +13,7 @@ const mergeMap = {
  * @param {Object} config2
  * @returns {Object} 合併後的新物件
  */
-export default function mergeConfig(config1: object, config2: object): object {
+export default function mergeConfig(config1, config2) {
   config1 = accessible(config1);
   config2 = accessible(config2);
 
@@ -35,7 +36,7 @@ export default function mergeConfig(config1: object, config2: object): object {
  * @param {*} value
  * @returns {Object}
  */
-export function accessible(value: any): object {
+export function accessible(value) {
   return isAccessible(value) ? value : {};
 }
 
@@ -45,7 +46,7 @@ export function accessible(value: any): object {
  * @param {*} value
  * @returns {boolean}
  */
-export function isAccessible(value: any): boolean {
+export function isAccessible(value) {
   return typeof value === 'object' && value !== null;
 }
 
@@ -55,6 +56,6 @@ export function isAccessible(value: any): boolean {
  * @param {any[]} ...args
  * @returns {Object}
  */
-export function mergeAccessible(...args: any[]): object {
+export function mergeAccessible(...args) {
   return Object.assign({}, ...args.filter(isAccessible));
 }
