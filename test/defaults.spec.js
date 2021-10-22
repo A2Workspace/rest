@@ -47,11 +47,25 @@ describe('defaults', () => {
 
     const $rest = rest('/api/users');
 
-    expect(rest.defaults.fetchAll.params.limit).toEqual(15);
+    expect($rest.options.fetchAll.params.limit).toEqual(15);
 
     $rest.options.fetchAll.params.limit = 30;
 
+    expect($rest.options.fetchAll.params.limit).toEqual(30);
+
     // 修改後全域設置應仍為 15
     expect(rest.defaults.fetchAll.params.limit).toEqual(15);
+  });
+
+  test('RestInstance 間的 configs 應相互不影響', async () => {
+    rest.defaults.fetchAll.params.limit = 15;
+
+    const $post = rest('/api/posts');
+    const $users = rest('/api/users');
+
+    $post.options.fetchAll.params.limit = 30;
+
+    // 修改 $post 後 $users 的設置應仍為 15
+    expect($users.options.fetchAll.params.limit).toEqual(15);
   });
 });
