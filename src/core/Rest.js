@@ -22,8 +22,6 @@ export default class Rest {
    * @returns {Promise}
    */
   fetchAll(params) {
-    const config = this.defaults.fetchAll;
-
     if (typeof params === 'function') {
       params = params(this.#currentQuery);
     }
@@ -32,14 +30,13 @@ export default class Rest {
       params = {};
     }
 
-    params = Object.assign(params, config.params);
+    const config = mergeConfig(this.defaults.fetchAll, { params });
 
-    this.#currentQuery = params;
+    this.#currentQuery = config.params;
 
     return this.#axios.request({
-      method: config.method,
+      ...config,
       url: this.#resourceURL,
-      params,
     });
   }
 
@@ -48,18 +45,11 @@ export default class Rest {
    * @returns {Promise}
    */
   create(data = {}) {
-    const config = this.defaults.create;
-
-    if (typeof data !== 'object') {
-      data = {};
-    }
-
-    data = Object.assign(data, config.data);
+    const config = mergeConfig(this.defaults.create, { data });
 
     return this.#axios.request({
-      method: config.method,
+      ...config,
       url: this.#resourceURL,
-      data,
     });
   }
 
@@ -69,18 +59,11 @@ export default class Rest {
    * @returns {Promise}
    */
   fetch(id, params = {}) {
-    const config = this.defaults.fetch;
-
-    if (typeof params !== 'object') {
-      params = {};
-    }
-
-    params = Object.assign(params, config.params);
+    const config = mergeConfig(this.defaults.fetch, { params });
 
     return this.#axios.request({
-      method: config.method,
+      ...config,
       url: `${this.#resourceURL}/${id}`,
-      params,
     });
   }
 
@@ -90,39 +73,25 @@ export default class Rest {
    * @returns {Promise}
    */
   update(id, data = {}) {
-    const config = this.defaults.update;
-
-    if (typeof data !== 'object') {
-      data = {};
-    }
-
-    data = Object.assign(data, config.data);
+    const config = mergeConfig(this.defaults.update, { data });
 
     return this.#axios.request({
-      method: config.method,
+      ...config,
       url: `${this.#resourceURL}/${id}`,
-      data,
     });
   }
 
   /**
    * @param {number} id
-   * @param {object} params
+   * @param {Object} params
    * @returns {Promise}
    */
   delete(id, params = {}) {
-    const config = this.defaults.delete || {};
-
-    if (typeof params !== 'object') {
-      params = {};
-    }
-
-    params = Object.assign(params, config.params);
+    const config = mergeConfig(this.defaults.delete, { params });
 
     return this.#axios.request({
-      method: config.method,
+      ...config,
       url: `${this.#resourceURL}/${id}`,
-      params,
     });
   }
 }
