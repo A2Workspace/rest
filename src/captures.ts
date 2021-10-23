@@ -120,12 +120,12 @@ class ValidationMessageBag {
     return this._errors;
   }
 
-  first(field: string) {
-    return Object.entries(this._errors).find(([key, value]) => {
-      if (!field || field == key) {
+  first(field: string): string {
+    for (const [key, value] of Object.entries(this._errors)) {
+      if (! field || field == key) {
         return value[0];
       }
-    });
+    }
   }
 }
 
@@ -135,6 +135,14 @@ class BriefValidationMessageBag extends ValidationMessageBag {
 
     for (const [key, value] of Object.entries(this._errors)) {
       this._errors[key] = value[0];
+    }
+  }
+
+  first(field: string): string {
+    for (const [key, value] of Object.entries(this._errors)) {
+      if (! field || field == key) {
+        return value;
+      }
     }
   }
 }
