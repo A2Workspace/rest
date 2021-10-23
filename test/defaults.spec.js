@@ -1,7 +1,8 @@
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import rest from '../src/index';
-import createMockedAxios from './helpers/createMockedAxios';
 
-const mock = createMockedAxios();
+const mock = new MockAdapter(axios);
 
 describe('defaults', () => {
   afterEach(() => {
