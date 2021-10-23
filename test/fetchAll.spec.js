@@ -1,42 +1,50 @@
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import rest from '../src/index';
-import { users } from './helpers/seeds';
-import createMockedAxios from './helpers/createMockedAxios';
 
-describe('fetchAll', () => {
-  let $rest;
-  const mock = createMockedAxios();
+const mock = new MockAdapter(axios);
 
+const userTable = [
+  { id: 1, name: 'Foo' },
+  { id: 2, name: 'Bar' },
+];
+
+describe('Rest.fetchAll()', () => {
   afterEach(() => {
     mock.reset();
   });
 
   beforeEach(() => {
-    $rest = rest('/api/users');
-
-    mock.onGet('/api/users').reply(200, users);
+    mock.onGet('/api/users').reply(200, userTable);
   });
 
-  test('Basic', async () => {
-    const result = await $rest.fetchAll();
+  test('基本測試', async () => {
+    const users = rest('/api/users');
+
+    const result = await users.fetchAll();
 
     expect(mock.history.get[0].url).toEqual('/api/users');
-    expect(result.data).toEqual(users);
+    expect(result.data).toEqual(userTable);
     expect(Array.isArray(result.data)).toBeTruthy();
   });
 
-  test('With params', async () => {
-    await $rest.fetchAll({ page: 1 });
+  test('測試查詢參數', async () => {
+    const users = rest('/api/users');
+
+    await users.fetchAll({ page: 1 });
 
     expect(mock.history.get[0].url).toEqual('/api/users');
     expect(mock.history.get[0].params).toEqual({ page: 1 });
   });
 
-  test('Append params', async () => {
-    await $rest.fetchAll({ page: 1 });
+  test('測試合併查詢參數', async () => {
+    const users = rest('/api/users');
+
+    await users.fetchAll({ page: 1 });
 
     expect(mock.history.get[0].params).toEqual({ page: 1 });
 
-    await $rest.fetchAll((params) => ({ ...params, sort: 'name' }));
+    await users.fetchAll((params) => ({ ...params, sort: 'name' }));
 
     expect(mock.history.get[1].params).toEqual({ page: 1, sort: 'name' });
   });

@@ -1,24 +1,24 @@
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import rest from '../src/index';
-import createMockedAxios from './helpers/createMockedAxios';
 
-describe('update', () => {
-  let $rest;
-  const mock = createMockedAxios();
+const mock = new MockAdapter(axios);
 
+describe('Rest.update()', () => {
   afterEach(() => {
     mock.reset();
   });
 
   beforeEach(() => {
-    $rest = rest('/api/users');
-
     mock.onPut('/api/users/1').reply(200, {
       status: true,
     });
   });
 
-  test('Basic', async () => {
-    const result = await $rest.update(1, { name: 'John' });
+  test('基本測試', async () => {
+    const users = rest('/api/users');
+
+    const result = await users.update(1, { name: 'John' });
 
     expect(mock.history.put[0].url).toEqual('/api/users/1');
     expect(mock.history.put[0].data).toEqual(JSON.stringify({ name: 'John' }));

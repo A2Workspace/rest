@@ -1,21 +1,21 @@
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import rest from '../src/index';
-import createMockedAxios from './helpers/createMockedAxios';
 
-describe('delete', () => {
-  let $rest;
-  const mock = createMockedAxios();
+const mock = new MockAdapter(axios);
 
+describe('Rest.delete()', () => {
   afterEach(() => {
     mock.reset();
   });
 
   beforeEach(() => {
-    $rest = rest('/api/users');
-
     mock.onDelete('/api/users/1').reply(201);
   });
 
-  test('Basic', async () => {
+  test('基本測試', async () => {
+    const $rest = rest('/api/users');
+
     const result = await $rest.delete(1);
 
     expect(mock.history.delete[0].url).toEqual('/api/users/1');

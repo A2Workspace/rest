@@ -1,25 +1,26 @@
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import rest from '../src/index';
-import { users } from './helpers/seeds';
-import createMockedAxios from './helpers/createMockedAxios';
 
-describe('fetchAll', () => {
-  let $rest;
-  const mock = createMockedAxios();
+const mock = new MockAdapter(axios);
 
+describe('Rest.fetch()', () => {
   afterEach(() => {
     mock.reset();
   });
 
   beforeEach(() => {
-    $rest = rest('/api/users');
-
-    mock.onGet('/api/users/1').reply(200, users[0]);
+    mock.onGet('/api/users/1').reply(200, {
+      name: 'John',
+    });
   });
 
-  test('Basic', async () => {
+  test('基本測試', async () => {
+    const $rest = rest('/api/users');
+
     const result = await $rest.fetch(1);
 
     expect(mock.history.get[0].url).toEqual('/api/users/1');
-    expect(result.data).toEqual(users[0]);
+    expect(result.data).toEqual({ name: 'John' });
   });
 });
