@@ -9,7 +9,7 @@ describe('captures', () => {
     mock.reset();
   });
 
-  describe('captureAxiosError', () => {
+  describe('captureAxiosError()', () => {
     test('基本測試', async () => {
       mock.onPost('/api/join-us').reply(422);
 
@@ -23,24 +23,19 @@ describe('captures', () => {
         .catch(captureAxiosError(handleAxiosError))
         .catch(handleError);
 
-      // 因回傳非 200 成功 handleResponse 應不被呼叫過
-      expect(handleResponse.mock.calls.length).toBe(0);
+      expect(handleResponse).not.toHaveBeenCalled();
+      expect(handleError).not.toHaveBeenCalled();
 
-      // 因為錯誤被攔截 handleError 應不被呼叫過
-      expect(handleError.mock.calls.length).toBe(0);
+      expect(handleAxiosError).toHaveBeenCalledTimes(1);
+      expect(handleAxiosError).toBeCalledWith(
+        expect.objectContaining({
+          response: expect.objectContaining({
+            status: expect.any(Number),
+          }),
+        })
+      );
 
-      // handleAxiosError 應被呼叫過
-      expect(handleAxiosError.mock.calls.length).toBe(1);
-
-      // handleAxiosError 應接收一個 AxiosError 參數
-      expect(handleAxiosError.mock.calls[0][0]).toMatchObject({
-        response: {
-          status: 422,
-        },
-      });
-
-      // handleAxiosError 應回傳一個 true
-      expect(handleAxiosError.mock.results[0].value).toBeTruthy();
+      expect(handleAxiosError).toHaveReturnedWith(true);
     });
 
     test('略過非 AxiosError 不處理', async () => {
@@ -57,15 +52,12 @@ describe('captures', () => {
         .catch(captureAxiosError(handleAxiosError))
         .catch(handleError);
 
-      // 非 http 請求錯誤 handleAxiosError 應不被呼叫過
-      expect(handleAxiosError.mock.calls.length).toBe(0);
-
-      // handleError 應被呼叫過
-      expect(handleError.mock.calls.length).toBe(1);
+      expect(handleAxiosError).not.toHaveBeenCalled();
+      expect(handleError).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('captureStatusCode', () => {
+  describe('captureStatusCode()', () => {
     test('基本測試', async () => {
       mock.onPost('/api/users').reply(403);
 
@@ -81,16 +73,18 @@ describe('captures', () => {
         .catch(captureStatusCode(403, handleForbidden))
         .catch(handleError);
 
-      expect(handleResponse.mock.calls.length).toBe(0);
-      expect(handleUnauthorized.mock.calls.length).toBe(0);
-      expect(handleError.mock.calls.length).toBe(0);
+      expect(handleResponse).not.toHaveBeenCalled();
+      expect(handleUnauthorized).not.toHaveBeenCalled();
+      expect(handleError).not.toHaveBeenCalled();
 
-      expect(handleForbidden.mock.calls.length).toBe(1);
-      expect(handleForbidden.mock.calls[0][0]).toMatchObject({
-        response: {
-          status: 403,
-        },
-      });
+      expect(handleForbidden).toHaveBeenCalledTimes(1);
+      expect(handleForbidden).toBeCalledWith(
+        expect.objectContaining({
+          response: expect.objectContaining({
+            status: expect.any(Number),
+          }),
+        })
+      );
     });
 
     test('測試參數為陣列', async () => {
@@ -104,18 +98,20 @@ describe('captures', () => {
         .catch(captureStatusCode([401, 403], handlePermissionDenied))
         .catch(handleError);
 
-      expect(handleError.mock.calls.length).toBe(0);
+      expect(handleError).not.toHaveBeenCalled();
 
-      expect(handlePermissionDenied.mock.calls.length).toBe(1);
-      expect(handlePermissionDenied.mock.calls[0][0]).toMatchObject({
-        response: {
-          status: 403,
-        },
-      });
+      expect(handlePermissionDenied).toHaveBeenCalledTimes(1);
+      expect(handlePermissionDenied).toBeCalledWith(
+        expect.objectContaining({
+          response: expect.objectContaining({
+            status: expect.any(Number)
+          }),
+        })
+      );
     });
   });
 
-  describe('captureValidationError', () => {
+  describe('captureValidationError()', () => {
     test('基本測試', async () => {
       mock.onPost('/api/join-us').reply(422, {
         message: '缺少必要資料',
