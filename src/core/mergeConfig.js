@@ -4,6 +4,7 @@ const mergeMap = {
   url: '',
   data: {},
   params: {},
+  parseURL: null,
 };
 
 /**

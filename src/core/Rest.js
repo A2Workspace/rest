@@ -14,6 +14,50 @@ export default class Rest {
     this.#axios = options.axios;
 
     this.options = options;
+
+    this.bindAction('create', (data = {}) => ({
+      method: 'post',
+      data,
+    }));
+
+    this.bindAction('fetch', (id, params = {}) => ({
+      method: 'get',
+      params,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    }));
+
+    this.bindAction('update', (id, data = {}) => ({
+      method: 'put',
+      data,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    }));
+
+    this.bindAction('delete', (id, params = {}) => ({
+      method: 'delete',
+      params,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    }));
+  }
+
+  bindAction(name, callable) {
+    if (typeof this[name] !== 'undefined') {
+      throw new Error(`${name} 已存在`);
+    }
+
+    let action = function (...args) {
+      let config = mergeConfig(this.options[name], callable(...args));
+
+      let url = typeof config.parseURL === 'function' ? config.parseURL(this.#resourceURN) : this.#resourceURN;
+
+      return this.#axios.request({
+        ...config,
+        url,
+      });
+    };
+
+    action.bind(this);
+
+    this[name] = action;
   }
 
   /**
@@ -36,61 +80,6 @@ export default class Rest {
     return this.#axios.request({
       ...config,
       url: this.#resourceURN,
-    });
-  }
-
-  /**
-   * @param {object} data
-   * @returns {Promise<AxiosResponse>}
-   */
-  create(data = {}) {
-    const config = mergeConfig(this.options.create, { data });
-
-    return this.#axios.request({
-      ...config,
-      url: this.#resourceURN,
-    });
-  }
-
-  /**
-   * @param {number} id
-   * @param {object} params
-   * @returns {Promise<AxiosResponse>}
-   */
-  fetch(id, params = {}) {
-    const config = mergeConfig(this.options.fetch, { params });
-
-    return this.#axios.request({
-      ...config,
-      url: `${this.#resourceURN}/${id}`,
-    });
-  }
-
-  /**
-   * @param {number} id
-   * @param {object} data
-   * @returns {Promise<AxiosResponse>}
-   */
-  update(id, data = {}) {
-    const config = mergeConfig(this.options.update, { data });
-
-    return this.#axios.request({
-      ...config,
-      url: `${this.#resourceURN}/${id}`,
-    });
-  }
-
-  /**
-   * @param {number} id
-   * @param {Object} params
-   * @returns {Promise<AxiosResponse>}
-   */
-  delete(id, params = {}) {
-    const config = mergeConfig(this.options.delete, { params });
-
-    return this.#axios.request({
-      ...config,
-      url: `${this.#resourceURN}/${id}`,
     });
   }
 }
