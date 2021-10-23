@@ -1,8 +1,8 @@
 import axios from 'axios';
-import createMockedAxios from './helpers/createMockedAxios';
-import { captureAxiosError } from '../src/captures';
+import MockAdapter from 'axios-mock-adapter';
+import { captureAxiosError, captureStatusCode } from '../src/captures';
 
-const mock = createMockedAxios();
+const mock = new MockAdapter(axios);
 
 describe('captures', () => {
   afterEach(() => {
@@ -62,7 +62,53 @@ describe('captures', () => {
 
       // handleError 應被呼叫過
       expect(handleError.mock.calls.length).toBe(1);
+    });
+  });
 
+  describe('captureStatusCode', () => {
+    test('基本測試', async () => {
+      mock.onPost('/api/users').reply(403);
+
+      const handleUnauthorized = jest.fn((error) => error.response.status);
+      const handleForbidden = jest.fn((error) => error.response.status);
+      const handleError = jest.fn((error) => error);
+
+      await axios
+        .post('/api/users')
+        .catch(captureStatusCode(401, handleUnauthorized))
+        .catch(captureStatusCode(403, handleForbidden))
+        .catch(handleError);
+
+      expect(handleUnauthorized.mock.calls.length).toBe(0);
+      expect(handleError.mock.calls.length).toBe(0);
+
+      expect(handleForbidden.mock.calls.length).toBe(1);
+      expect(handleForbidden.mock.calls[0][0]).toMatchObject({
+        response: {
+          status: 403,
+        },
+      });
+    });
+
+    test('測試參數為陣列', async () => {
+      mock.onPost('/api/users').reply(403);
+
+      const handlePermissionDenied = jest.fn((error) => error.response.status);
+      const handleError = jest.fn((error) => error);
+
+      await axios
+        .post('/api/users')
+        .catch(captureStatusCode([401, 403], handlePermissionDenied))
+        .catch(handleError);
+
+      expect(handleError.mock.calls.length).toBe(0);
+
+      expect(handlePermissionDenied.mock.calls.length).toBe(1);
+      expect(handlePermissionDenied.mock.calls[0][0]).toMatchObject({
+        response: {
+          status: 403,
+        },
+      });
     });
   });
 });
