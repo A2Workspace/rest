@@ -1,6 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { captureAxiosError, captureStatusCode } from '../src/captures';
+import { captureAxiosError, captureStatusCode, captureValidationError } from '../src/captures';
 
 const mock = new MockAdapter(axios);
 
@@ -69,16 +69,19 @@ describe('captures', () => {
     test('基本測試', async () => {
       mock.onPost('/api/users').reply(403);
 
+      const handleResponse = jest.fn((res) => res.data);
       const handleUnauthorized = jest.fn((error) => error.response.status);
       const handleForbidden = jest.fn((error) => error.response.status);
       const handleError = jest.fn((error) => error);
 
       await axios
         .post('/api/users')
+        .then(handleResponse)
         .catch(captureStatusCode(401, handleUnauthorized))
         .catch(captureStatusCode(403, handleForbidden))
         .catch(handleError);
 
+      expect(handleResponse.mock.calls.length).toBe(0);
       expect(handleUnauthorized.mock.calls.length).toBe(0);
       expect(handleError.mock.calls.length).toBe(0);
 
@@ -109,6 +112,43 @@ describe('captures', () => {
           status: 403,
         },
       });
+    });
+  });
+
+  describe('captureValidationError', () => {
+    test('基本測試', async () => {
+      mock.onPost('/api/join-us').reply(422, {
+        message: '缺少必要資料',
+        errors: {
+          title: '標題不能為空',
+          name: '名稱不能為空',
+        },
+      });
+
+      const handleResponse = jest.fn((res) => res.data);
+      const handleValidationError = jest.fn((errorBag) => errorBag.first());
+      const handleError = jest.fn((error) => error);
+
+      await axios
+        .post('/api/join-us')
+        .then(handleResponse)
+        .catch(captureValidationError(handleValidationError))
+        .catch(handleError);
+
+      expect(handleResponse).not.toHaveBeenCalled();
+      expect(handleError).not.toHaveBeenCalled();
+
+      expect(handleValidationError).toHaveBeenCalledTimes(1);
+      expect(handleValidationError).toBeCalledWith(
+        expect.objectContaining({
+          response: expect.any(Object),
+          errors: expect.any(Object),
+          message: expect.any(String),
+          first: expect.any(Function),
+        })
+      );
+
+      expect(handleValidationError).toHaveReturnedWith('標題不能為空');
     });
   });
 });

@@ -2,7 +2,7 @@ import type { AxiosResponse, AxiosError } from 'axios';
 
 type ErrorCapturer = (error: any) => void;
 
-type AxiosErrorHandler<T> = (error: AxiosError<T>) => any;
+type AxiosErrorHandler<T = any> = (error: AxiosError<T>) => any;
 
 interface ValidationError {
   message?: string;
@@ -47,7 +47,7 @@ export function captureAxiosError(handler: AxiosErrorHandler<any>): ErrorCapture
  *   }))
  * ```
  */
-export function captureStatusCode(code: (string | number)[], handler: AxiosErrorHandler<any>): ErrorCapturer {
+export function captureStatusCode(code: any, handler: AxiosErrorHandler<any>): ErrorCapturer {
   let expected = Array.isArray(code) ? code : [code];
 
   return function (error: any) {
@@ -73,11 +73,23 @@ export function captureStatusCode(code: (string | number)[], handler: AxiosError
  *   }))
  * ```
  */
-export function captureValidationError(brief: AxiosErrorHandler<ValidationError>): ErrorCapturer;
-export function captureValidationError(brief: boolean, handler: AxiosErrorHandler<ValidationError>): ErrorCapturer;
-export function captureValidationError(brief: boolean, handler: AxiosErrorHandler<ValidationError>): ErrorCapturer {
+export function captureValidationError(
+  brief: boolean | AxiosErrorHandler<ValidationError>,
+  handler?: AxiosErrorHandler<ValidationError>
+): ErrorCapturer {
+  if (typeof brief === 'function') {
+    handler = brief;
+    brief = false;
+  }
+
   return captureStatusCode(422, function (error) {
-    return handler ? handler(createValidationMessageBag(error.response, brief)) : null;
+    if (typeof handler !== 'function') {
+      return null;
+    }
+
+    let messageBag = brief ? new BriefValidationMessageBag(error.response) : new ValidationMessageBag(error.response);
+
+    return handler(messageBag);
   });
 }
 
