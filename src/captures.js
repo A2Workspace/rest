@@ -1,14 +1,3 @@
-import type { AxiosResponse, AxiosError } from 'axios';
-
-type ErrorCapturer = (error: any) => void;
-
-type AxiosErrorHandler<T = any> = (error: AxiosError<T>) => any;
-
-interface ValidationError {
-  message?: string;
-  errors?: object;
-}
-
 /**
  * 捕獲 axiox 錯誤
  *
@@ -23,10 +12,10 @@ interface ValidationError {
  *   })
  * ```
  */
-export function captureAxiosError(handler: AxiosErrorHandler<any>): ErrorCapturer {
-  return function (error: any) {
+export function captureAxiosError(handler) {
+  return function (error) {
     if (error.isAxiosError) {
-      return handler ? handler(error) : null;
+      return handler(error);
     }
 
     throw error;
@@ -47,14 +36,14 @@ export function captureAxiosError(handler: AxiosErrorHandler<any>): ErrorCapture
  *   }))
  * ```
  */
-export function captureStatusCode(code: any, handler: AxiosErrorHandler<any>): ErrorCapturer {
+export function captureStatusCode(code, handler) {
   let expected = Array.isArray(code) ? code : [code];
 
-  return function (error: any) {
+  return function (error) {
     let status = error.response?.status;
 
     if (status && expected.includes(status)) {
-      return handler ? handler(error) : null;
+      return handler(error);
     }
 
     throw error;
@@ -73,10 +62,7 @@ export function captureStatusCode(code: any, handler: AxiosErrorHandler<any>): E
  *   }))
  * ```
  */
-export function captureValidationError(
-  brief: boolean | AxiosErrorHandler<ValidationError>,
-  handler?: AxiosErrorHandler<ValidationError>
-): ErrorCapturer {
+export function captureValidationError(brief, handler) {
   if (typeof brief === 'function') {
     handler = brief;
     brief = false;
@@ -94,11 +80,11 @@ export function captureValidationError(
 }
 
 class ValidationMessageBag {
-  _response: AxiosResponse<ValidationError>;
-  _message: string;
-  _errors: object;
+  _response;
+  _message;
+  _errors;
 
-  constructor(response: AxiosResponse<ValidationError>) {
+  constructor(response) {
     this._response = response;
     this._message = response.data.message || 'The given data was invalid';
     this._errors = response.data.errors || {};
@@ -120,9 +106,9 @@ class ValidationMessageBag {
     return this._errors;
   }
 
-  first(field: string): string {
+  first(field) {
     for (const [key, value] of Object.entries(this._errors)) {
-      if (! field || field == key) {
+      if (!field || field == key) {
         return value[0];
       }
     }
@@ -130,7 +116,7 @@ class ValidationMessageBag {
 }
 
 class BriefValidationMessageBag extends ValidationMessageBag {
-  constructor(response: AxiosResponse<ValidationError>) {
+  constructor(response) {
     super(response);
 
     for (const [key, value] of Object.entries(this._errors)) {
@@ -138,9 +124,9 @@ class BriefValidationMessageBag extends ValidationMessageBag {
     }
   }
 
-  first(field: string): string {
+  first(field) {
     for (const [key, value] of Object.entries(this._errors)) {
-      if (! field || field == key) {
+      if (!field || field == key) {
         return value;
       }
     }
