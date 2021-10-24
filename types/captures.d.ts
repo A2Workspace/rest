@@ -6,7 +6,7 @@ type AxiosErrorHandler<T> = (error: AxiosError<T>) => any;
 
 type ValidationErrorHandler<T = ValidationMessageBag> = (error: T) => any;
 
-interface ValidationErrorResponse {
+interface ValidationResponseData {
   message: string;
   errors: Record<string, string[]>;
 }
@@ -22,24 +22,24 @@ declare function captureValidationError(brief: ValidationErrorHandler<Validation
 declare function captureValidationError(brief: boolean, handler: ValidationErrorHandler<ValidationMessageBag> ): ErrorCapturer;
 
 declare class ValidationMessageBag {
-  _response: AxiosResponse<ValidationErrorResponse>;
+  _response: AxiosResponse<ValidationResponseData>;
   _message: string;
   _errors: Record<string, string[]>;
 
-  constructor(response: AxiosResponse<ValidationErrorResponse>);
-  get response(): AxiosResponse<ValidationErrorResponse>;
+  constructor(response: AxiosResponse<ValidationResponseData>);
+  get response(): AxiosResponse<ValidationResponseData>;
   get message(): string;
   get errors(): Record<string, string[]>;
   first(field?: string): string;
 }
 
 declare class BriefValidationMessageBag {
-  _response: AxiosResponse<ValidationErrorResponse>;
+  _response: AxiosResponse<ValidationResponseData>;
   _message: string;
   _errors: Record<string, string>;
 
-  constructor(response: AxiosResponse<ValidationErrorResponse>);
-  get response(): AxiosResponse<ValidationErrorResponse>;
+  constructor(response: AxiosResponse<ValidationResponseData>);
+  get response(): AxiosResponse<ValidationResponseData>;
   get message(): string;
   get errors(): Record<string, string>;
   first(field?: string): string;

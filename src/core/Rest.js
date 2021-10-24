@@ -1,104 +1,91 @@
+import axios from 'axios';
 import mergeConfig from './mergeConfig';
 
 export default class Rest {
   #resourceURN;
   #axios;
   #currentQuery;
+  #options;
 
   /**
    * @param {string} urn
-   * @param {RestOptions} options
+   * @param {Object} options
    */
   constructor(urn, options = {}) {
-    this.#resourceURN = parseURN(urn);
-    this.#axios = options.axios;
+    this.#resourceURN = String(urn).replace(/\/$/, '');
+    this.#axios = options.axios || axios;
 
-    this.options = options;
+    this.#options = options;
+
+    this.bindAction('fetchAll', function (params = {}) {
+      if (typeof params === 'function') {
+        params = params(this.lastQuery.params);
+      }
+
+      if (typeof params !== 'object') {
+        params = {};
+      }
+
+      return { params };
+    });
+
+    this.bindAction('create', (data = {}) => ({
+      data,
+    }));
+
+    this.bindAction('fetch', (id, params = {}) => ({
+      params,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    }));
+
+    this.bindAction('update', (id, data = {}) => ({
+      data,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    }));
+
+    this.bindAction('delete', (id, params = {}) => ({
+      params,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    }));
   }
 
   /**
-   * @param {(function|Object|null)} callback
-   * @returns {Promise<AxiosResponse>}
+   * @param {string} name
+   * @param {function} callable
    */
-  fetchAll(params) {
-    if (typeof params === 'function') {
-      params = params(this.#currentQuery);
+  bindAction(name, callable) {
+    if (typeof this[name] !== 'undefined') {
+      throw new Error(`${name} 已存在`);
     }
 
-    if (typeof params !== 'object') {
-      params = {};
-    }
+    let actionOptions = this.#options[name];
 
-    const config = mergeConfig(this.options.fetchAll, { params });
+    let action = function (...args) {
+      let inputOptions = callable.call(action, ...args);
 
-    this.#currentQuery = config.params;
+      let config = mergeConfig(actionOptions, inputOptions);
+      config.url = callCustomParseURL(inputOptions, this.#resourceURN);
 
-    return this.#axios.request({
-      ...config,
-      url: this.#resourceURN,
-    });
-  }
+      action.lastQuery = config;
+      return this.#axios.request(config);
+    };
 
-  /**
-   * @param {object} data
-   * @returns {Promise<AxiosResponse>}
-   */
-  create(data = {}) {
-    const config = mergeConfig(this.options.create, { data });
+    action.bind(this);
+    action.options = actionOptions;
+    action.lastQuery = {};
 
-    return this.#axios.request({
-      ...config,
-      url: this.#resourceURN,
-    });
-  }
-
-  /**
-   * @param {number} id
-   * @param {object} params
-   * @returns {Promise<AxiosResponse>}
-   */
-  fetch(id, params = {}) {
-    const config = mergeConfig(this.options.fetch, { params });
-
-    return this.#axios.request({
-      ...config,
-      url: `${this.#resourceURN}/${id}`,
-    });
-  }
-
-  /**
-   * @param {number} id
-   * @param {object} data
-   * @returns {Promise<AxiosResponse>}
-   */
-  update(id, data = {}) {
-    const config = mergeConfig(this.options.update, { data });
-
-    return this.#axios.request({
-      ...config,
-      url: `${this.#resourceURN}/${id}`,
-    });
-  }
-
-  /**
-   * @param {number} id
-   * @param {Object} params
-   * @returns {Promise<AxiosResponse>}
-   */
-  delete(id, params = {}) {
-    const config = mergeConfig(this.options.delete, { params });
-
-    return this.#axios.request({
-      ...config,
-      url: `${this.#resourceURN}/${id}`,
-    });
+    this[name] = action;
   }
 }
 
 /**
- * @param {*} value
+ * @param {Object} config
  * @returns {string}
  */
-function parseURN(value) {
-  return String(value).replace(/\/$/, '');
+function callCustomParseURL(config, resourceURN) {
+  if (typeof config.parseURL === 'function') {
+    return config.parseURL(resourceURN);
+  }
+
+  return resourceURN;
 }
