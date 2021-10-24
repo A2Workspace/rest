@@ -1,3 +1,4 @@
+import axios from 'axios';
 import mergeConfig from './mergeConfig';
 
 export default class Rest {
@@ -10,30 +11,38 @@ export default class Rest {
    * @param {Object} options
    */
   constructor(urn, options = {}) {
-    this.#resourceURN = parseURN(urn);
-    this.#axios = options.axios;
+    this.#resourceURN = String(urn).replace(/\/$/, '');
+    this.#axios = options.axios || axios;
 
     this.options = options;
 
+    this.bindAction('fetchAll', function (params = {}) {
+      if (typeof params === 'function') {
+        params = params(this.lastQuery.params);
+      }
+
+      if (typeof params !== 'object') {
+        params = {};
+      }
+
+      return { params };
+    });
+
     this.bindAction('create', (data = {}) => ({
-      method: 'post',
       data,
     }));
 
     this.bindAction('fetch', (id, params = {}) => ({
-      method: 'get',
       params,
       parseURL: (resourceURN) => `${resourceURN}/${id}`,
     }));
 
     this.bindAction('update', (id, data = {}) => ({
-      method: 'put',
       data,
       parseURL: (resourceURN) => `${resourceURN}/${id}`,
     }));
 
     this.bindAction('delete', (id, params = {}) => ({
-      method: 'delete',
       params,
       parseURL: (resourceURN) => `${resourceURN}/${id}`,
     }));
@@ -48,50 +57,34 @@ export default class Rest {
       throw new Error(`${name} 已存在`);
     }
 
+    let actionOptions = this.options[name];
+
     let action = function (...args) {
-      let config = mergeConfig(this.options[name], callable(...args));
+      let inputOptions = callable.call(action, ...args);
 
-      let url = typeof config.parseURL === 'function' ? config.parseURL(this.#resourceURN) : this.#resourceURN;
+      let config = mergeConfig(actionOptions, inputOptions);
+      config.url = callCustomParseURL(inputOptions, this.#resourceURN);
 
-      return this.#axios.request({
-        ...config,
-        url,
-      });
+      action.lastQuery = config;
+      return this.#axios.request(config);
     };
 
     action.bind(this);
+    action.options = actionOptions;
+    action.lastQuery = {};
 
     this[name] = action;
-  }
-
-  /**
-   * @param {(function|Object.<string, number>)} params
-   * @returns {Promise}
-   */
-  fetchAll(params) {
-    if (typeof params === 'function') {
-      params = params(this.#currentQuery);
-    }
-
-    if (typeof params !== 'object') {
-      params = {};
-    }
-
-    const config = mergeConfig(this.options.fetchAll, { params });
-
-    this.#currentQuery = config.params;
-
-    return this.#axios.request({
-      ...config,
-      url: this.#resourceURN,
-    });
   }
 }
 
 /**
- * @param {*} value
+ * @param {Object} config
  * @returns {string}
  */
-function parseURN(value) {
-  return String(value).replace(/\/$/, '');
+function callCustomParseURL(config, resourceURN) {
+  if (typeof config.parseURL === 'function') {
+    return config.parseURL(resourceURN);
+  }
+
+  return resourceURN;
 }
