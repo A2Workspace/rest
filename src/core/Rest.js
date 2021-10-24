@@ -7,7 +7,7 @@ export default class Rest {
 
   /**
    * @param {string} urn
-   * @param {RestOptions} options
+   * @param {Object} options
    */
   constructor(urn, options = {}) {
     this.#resourceURN = parseURN(urn);
@@ -39,6 +39,10 @@ export default class Rest {
     }));
   }
 
+  /**
+   * @param {string} name
+   * @param {function} callable
+   */
   bindAction(name, callable) {
     if (typeof this[name] !== 'undefined') {
       throw new Error(`${name} 已存在`);
@@ -61,8 +65,8 @@ export default class Rest {
   }
 
   /**
-   * @param {(function|Object|null)} callback
-   * @returns {Promise<AxiosResponse>}
+   * @param {(function|Object.<string, number>)} params
+   * @returns {Promise}
    */
   fetchAll(params) {
     if (typeof params === 'function') {

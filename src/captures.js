@@ -1,6 +1,11 @@
+
 /**
  * 捕獲 axiox 錯誤
  *
+ * @param {AxiosErrorHandler} handler
+ * @returns {ErrorCapturer}
+ *
+ * @example
  * ```js
  * axios.post(API_URI)
  *   .then((res) => res.data)
@@ -22,9 +27,16 @@ export function captureAxiosError(handler) {
   };
 }
 
+
+
 /**
  * 捕獲處理指定 http 狀態碼
  *
+ * @param {(number|number[]|string|string[])} code
+ * @param {AxiosErrorHandler} handler
+ * @returns {ErrorCapturer}
+ *
+ * @example
  * ```js
  * axios.post(API_URI)
  *   .then((res) => res.data)
@@ -53,6 +65,11 @@ export function captureStatusCode(code, handler) {
 /**
  * 捕獲驗證錯誤
  *
+ * @param {(boolean|ValidationErrorHandler)} brief
+ * @param {ValidationErrorHandler} [handler]
+ * @returns {ErrorCapturer}
+ *
+ * @example
  * ```js
  * axios.post(API_URI)
  *   .then((res) => res.data)
@@ -84,6 +101,9 @@ class ValidationMessageBag {
   _message;
   _errors;
 
+  /**
+   * @param {ValidationErrorResponse} response
+   */
   constructor(response) {
     this._response = response;
     this._message = response.data.message || 'The given data was invalid';
@@ -94,18 +114,33 @@ class ValidationMessageBag {
     }
   }
 
+  /**
+   * @returns {Object}
+   */
   get response() {
     return this._response;
   }
 
+  /**
+   * @returns {string}
+   */
   get message() {
     return this._message;
   }
 
+  /**
+   * @returns {Object.<string, string[]>}
+   */
   get errors() {
     return this._errors;
   }
 
+  /**
+   * 取得第一筆錯誤訊息
+   *
+   * @param {string} [field]
+   * @returns {string}
+   */
   first(field) {
     for (const [key, value] of Object.entries(this._errors)) {
       if (!field || field == key) {
@@ -116,6 +151,9 @@ class ValidationMessageBag {
 }
 
 class BriefValidationMessageBag extends ValidationMessageBag {
+  /**
+   * @param {ValidationErrorResponse} response
+   */
   constructor(response) {
     super(response);
 
@@ -124,6 +162,19 @@ class BriefValidationMessageBag extends ValidationMessageBag {
     }
   }
 
+  /**
+   * @returns {Object.<string, string>}
+   */
+  get errors() {
+    return this._errors;
+  }
+
+  /**
+   * 取得第一筆錯誤訊息
+   *
+   * @param {string} [field]
+   * @returns {string}
+   */
   first(field) {
     for (const [key, value] of Object.entries(this._errors)) {
       if (!field || field == key) {
@@ -132,3 +183,30 @@ class BriefValidationMessageBag extends ValidationMessageBag {
     }
   }
 }
+
+/**
+ * @callback AxiosErrorHandler
+ * @param {AxiosError} error
+ * @returns {*}
+ */
+
+/**
+ * @callback ValidationErrorHandler
+ * @param {(ValidationMessageBag|BriefValidationMessageBag)} error
+ * @returns {*}
+ */
+
+/**
+ * @typedef ValidationErrorResponse
+ * @type {object}
+ * @property {number} status
+ * @property {Object} data
+ * @property {string} data.message
+ * @property {Object.<string, string[]>} data.errors
+ */
+
+/**
+ * @callback ErrorCapturer
+ * @param {*} error
+ * @returns {void}
+ */
