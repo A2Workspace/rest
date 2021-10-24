@@ -5,6 +5,7 @@ export default class Rest {
   #resourceURN;
   #axios;
   #currentQuery;
+  #options;
 
   /**
    * @param {string} urn
@@ -14,7 +15,7 @@ export default class Rest {
     this.#resourceURN = String(urn).replace(/\/$/, '');
     this.#axios = options.axios || axios;
 
-    this.options = options;
+    this.#options = options;
 
     this.bindAction('fetchAll', function (params = {}) {
       if (typeof params === 'function') {
@@ -57,7 +58,7 @@ export default class Rest {
       throw new Error(`${name} 已存在`);
     }
 
-    let actionOptions = this.options[name];
+    let actionOptions = this.#options[name];
 
     let action = function (...args) {
       let inputOptions = callable.call(action, ...args);

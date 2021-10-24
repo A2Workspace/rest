@@ -67,6 +67,6 @@ describe('defaults', () => {
     $post.fetchAll.options.params.limit = 30;
 
     // 修改 $post 後 $users 的設置應仍為 15
-    expect($users.options.fetchAll.params.limit).toEqual(15);
+    expect($users.fetchAll.options.params.limit).toEqual(15);
   });
 });
