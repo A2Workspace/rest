@@ -37,7 +37,11 @@ export default class RestPromise extends Promise {
  * @returns {RestPromise}
  */
 RestPromise.wrap = function (promise) {
-  return this.all([promise]);
+  if (promise instanceof Promise) {
+    return RestPromise.resolve(promise);
+  }
+
+  throw TypeError('傳入的參數必須為 Promise');
 };
 
 /**
