@@ -2,6 +2,8 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { captureAxiosError, captureStatusCode, captureValidationError } from '../src/core/captures';
 
+const API_URL = '/endpoint';
+
 const mock = new MockAdapter(axios);
 
 describe('captures', () => {
@@ -11,14 +13,14 @@ describe('captures', () => {
 
   describe('captureAxiosError()', () => {
     test('基本測試', async () => {
-      mock.onPost('/api/join-us').reply(422);
+      mock.onPost(API_URL).reply(422);
 
       const handleResponse = jest.fn((res) => res.data);
       const handleAxiosError = jest.fn((error) => error.isAxiosError);
       const handleError = jest.fn((error) => error);
 
       await axios
-        .post('/api/join-us')
+        .post(API_URL)
         .then(handleResponse)
         .catch(captureAxiosError(handleAxiosError))
         .catch(handleError);
@@ -39,13 +41,13 @@ describe('captures', () => {
     });
 
     test('略過非 AxiosError 不處理', async () => {
-      mock.onPost('/api/join-us').reply(200);
+      mock.onPost(API_URL).reply(200);
 
       const handleAxiosError = jest.fn((error) => error.isAxiosError);
       const handleError = jest.fn((error) => error);
 
       await axios
-        .post('/api/join-us')
+        .post(API_URL)
         .then(() => {
           throw '捕獲這個錯誤吧';
         })
@@ -59,7 +61,7 @@ describe('captures', () => {
 
   describe('captureStatusCode()', () => {
     test('基本測試', async () => {
-      mock.onPost('/api/users').reply(403);
+      mock.onPost(API_URL).reply(403);
 
       const handleResponse = jest.fn((res) => res.data);
       const handleUnauthorized = jest.fn((error) => error.response.status);
@@ -67,7 +69,7 @@ describe('captures', () => {
       const handleError = jest.fn((error) => error);
 
       await axios
-        .post('/api/users')
+        .post(API_URL)
         .then(handleResponse)
         .catch(captureStatusCode(401, handleUnauthorized))
         .catch(captureStatusCode(403, handleForbidden))
@@ -88,13 +90,13 @@ describe('captures', () => {
     });
 
     test('測試參數為陣列', async () => {
-      mock.onPost('/api/users').reply(403);
+      mock.onPost(API_URL).reply(403);
 
       const handlePermissionDenied = jest.fn((error) => error.response.status);
       const handleError = jest.fn((error) => error);
 
       await axios
-        .post('/api/users')
+        .post(API_URL)
         .catch(captureStatusCode([401, 403], handlePermissionDenied))
         .catch(handleError);
 
@@ -113,7 +115,7 @@ describe('captures', () => {
 
   describe('captureValidationError()', () => {
     test('基本測試', async () => {
-      mock.onPost('/api/join-us').reply(422, {
+      mock.onPost(API_URL).reply(422, {
         message: '缺少必要資料',
         errors: {
           title: '標題不能為空',
@@ -126,7 +128,7 @@ describe('captures', () => {
       const handleError = jest.fn((error) => error);
 
       await axios
-        .post('/api/join-us')
+        .post(API_URL)
         .then(handleResponse)
         .catch(captureValidationError(handleValidationError))
         .catch(handleError);

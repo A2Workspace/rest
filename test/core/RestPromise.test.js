@@ -2,6 +2,8 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import RestPromise from '../../src/core/RestPromise';
 
+const API_URL = '/endpoint';
+
 const mock = new MockAdapter(axios);
 
 describe('RestPromise', () => {
@@ -42,13 +44,13 @@ describe('RestPromise', () => {
     });
 
     test('RestPromise.catchAxiosError()', async () => {
-      mock.onPost('/api/endpoint').reply(400);
+      mock.onPost(API_URL).reply(400);
 
       const handleResponse = jest.fn((res) => res.data);
       const handleAxiosError = jest.fn((error) => error.isAxiosError);
       const handleError = jest.fn((error) => error);
 
-      await RestPromise.wrap(axios.post('/api/endpoint'))
+      await RestPromise.wrap(axios.post(API_URL))
         .then(handleResponse)
         .catchAxiosError(handleAxiosError)
         .catch(handleError);
@@ -69,14 +71,14 @@ describe('RestPromise', () => {
     });
 
     test('RestPromise.catchStatusCode()', async () => {
-      mock.onPost('/api/endpoint').reply(403);
+      mock.onPost(API_URL).reply(403);
 
       const handleResponse = jest.fn((res) => res.data);
       const handleUnauthorized = jest.fn((error) => error.response.status);
       const handleForbidden = jest.fn((error) => error.response.status);
       const handleError = jest.fn((error) => error);
 
-      await RestPromise.wrap(axios.post('/api/endpoint'))
+      await RestPromise.wrap(axios.post(API_URL))
         .then(handleResponse)
         .catchStatusCode(401, handleUnauthorized)
         .catchStatusCode(403, handleForbidden)
@@ -97,7 +99,7 @@ describe('RestPromise', () => {
     });
 
     test('RestPromise.catchValidationError()', async () => {
-      mock.onPost('/api/endpoint').reply(422, {
+      mock.onPost(API_URL).reply(422, {
         message: '缺少必要資料',
         errors: {
           title: '標題不能為空',
@@ -109,7 +111,7 @@ describe('RestPromise', () => {
       const handleValidationError = jest.fn((errorBag) => errorBag.first());
       const handleError = jest.fn((error) => error);
 
-      await RestPromise.wrap(axios.post('/api/endpoint'))
+      await RestPromise.wrap(axios.post(API_URL))
         .then(handleResponse)
         .catchValidationError(handleValidationError)
         .catch(handleError);
