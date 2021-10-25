@@ -1,15 +1,15 @@
 import axios from 'axios';
 import mergeConfig from './mergeConfig';
+import RestPromise from './RestPromise';
 
 export default class Rest {
   #resourceURN;
-  #axios;
-  #currentQuery;
   #options;
+  #axios;
 
   /**
    * @param {string} urn
-   * @param {Object} options
+   * @param {RestOptions} options
    */
   constructor(urn, options = {}) {
     this.#resourceURN = String(urn).replace(/\/$/, '');
@@ -17,41 +17,13 @@ export default class Rest {
 
     this.#options = options;
 
-    this.bindAction('fetchAll', function (params = {}) {
-      if (typeof params === 'function') {
-        params = params(this.lastQuery.params);
-      }
-
-      if (typeof params !== 'object') {
-        params = {};
-      }
-
-      return { params };
-    });
-
-    this.bindAction('create', (data = {}) => ({
-      data,
-    }));
-
-    this.bindAction('fetch', (id, params = {}) => ({
-      params,
-      parseURL: (resourceURN) => `${resourceURN}/${id}`,
-    }));
-
-    this.bindAction('update', (id, data = {}) => ({
-      data,
-      parseURL: (resourceURN) => `${resourceURN}/${id}`,
-    }));
-
-    this.bindAction('delete', (id, params = {}) => ({
-      params,
-      parseURL: (resourceURN) => `${resourceURN}/${id}`,
-    }));
+    bindDefaultActions(this);
   }
 
   /**
    * @param {string} name
-   * @param {function} callable
+   * @param {bindActionHandler} callable
+   * @returns {void}
    */
   bindAction(name, callable) {
     if (typeof this[name] !== 'undefined') {
@@ -60,17 +32,17 @@ export default class Rest {
 
     let actionOptions = this.#options[name];
 
-    let action = function (...args) {
+    let action = (...args) => {
       let inputOptions = callable.call(action, ...args);
 
       let config = mergeConfig(actionOptions, inputOptions);
       config.url = callCustomParseURL(inputOptions, this.#resourceURN);
 
       action.lastQuery = config;
-      return this.#axios.request(config);
+
+      return RestPromise.wrap(this.#axios.request(config));
     };
 
-    action.bind(this);
     action.options = actionOptions;
     action.lastQuery = {};
 
@@ -79,7 +51,52 @@ export default class Rest {
 }
 
 /**
- * @param {Object} config
+ * 綁定預設的 fetchAll, create, fetch, update, delete 等五個方法
+ *
+ * @param {Rest} restInstance
+ * @returns {void}
+ */
+function bindDefaultActions(restInstance) {
+  restInstance.bindAction('fetchAll', function (params = {}) {
+    if (typeof params === 'function') {
+      params = params(this.lastQuery.params);
+    }
+
+    if (typeof params !== 'object') {
+      params = {};
+    }
+
+    return { params };
+  });
+
+  restInstance.bindAction('create', function (data = {}) {
+    return { data };
+  });
+
+  restInstance.bindAction('fetch', function (id, params = {}) {
+    return {
+      params,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    };
+  });
+
+  restInstance.bindAction('update', function (id, data = {}) {
+    return {
+      data,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    };
+  });
+
+  restInstance.bindAction('delete', function (id, params = {}) {
+    return {
+      params,
+      parseURL: (resourceURN) => `${resourceURN}/${id}`,
+    };
+  });
+}
+
+/**
+ * @param {Object.<string, *>} config
  * @returns {string}
  */
 function callCustomParseURL(config, resourceURN) {
@@ -89,3 +106,34 @@ function callCustomParseURL(config, resourceURN) {
 
   return resourceURN;
 }
+
+/**
+ * @typedef RestOptions
+ * @type {object}
+ * @property {AxiosInstance} [axios]
+ * @property {Object.<string, *>} [fetchAll]
+ * @property {Object.<string, *>} [create]
+ * @property {Object.<string, *>} [fetch]
+ * @property {Object.<string, *>} [update]
+ * @property {Object.<string, *>} [delete]
+ */
+
+/**
+ * @callback bindActionHandler
+ * @param {...*} args
+ * @returns {ActionConfig}
+ */
+
+/**
+ * @typedef ActionConfig
+ * @type {object}
+ * @property {Object.<string, *>} [params]
+ * @property {Object.<string, *>} [data]
+ * @property {parseURL} [parseURL]
+ */
+
+/**
+ * @callback parseURL
+ * @param {string} resourceURN
+ * @returns {string}
+ */

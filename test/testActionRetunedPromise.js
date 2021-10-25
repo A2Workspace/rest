@@ -1,26 +1,60 @@
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
-import { captureAxiosError, captureStatusCode, captureValidationError } from '../src/captures';
+import RestPromise from '../src/core/RestPromise';
 
-const mock = new MockAdapter(axios);
+/**
+ *
+ * @param {string} label
+ * @param {getTargetCallable} getTarget
+ * @param {getRequestHandlerCallable} getRequestHandler
+ * @returns {void}
+ */
+export default function testActionRetunedPromise(label, getTarget, getRequestHandler) {
+  describe(label, () => {
 
-describe('captures', () => {
-  afterEach(() => {
-    mock.reset();
-  });
+    test('回傳必須為 RestPromise 實體', async () => {
+      getRequestHandler().reply(200);
 
-  describe('captureAxiosError()', () => {
-    test('基本測試', async () => {
-      mock.onPost('/api/join-us').reply(422);
+      const target = getTarget();
+
+      expect(target).toBeInstanceOf(RestPromise);
+
+      expect(target).toHaveProperty('catchAxiosError');
+      expect(target).toHaveProperty('catchStatusCode');
+      expect(target).toHaveProperty('catchValidationError');
+    });
+
+    test('我仍是我', async () => {
+      getRequestHandler().reply(200);
+
+      let target = getTarget();
+
+      expect(target).toBeInstanceOf(RestPromise);
+
+      target = target.then(() => {});
+      expect(target).toBeInstanceOf(RestPromise);
+
+      target = target.catch(() => {});
+      expect(target).toBeInstanceOf(RestPromise);
+
+      target = target.catchAxiosError(() => {});
+      expect(target).toBeInstanceOf(RestPromise);
+
+      target = target.catchStatusCode(404, () => {});
+      expect(target).toBeInstanceOf(RestPromise);
+
+      target = target.catchValidationError(() => {});
+      expect(target).toBeInstanceOf(RestPromise);
+    });
+
+    test('catchAxiosError()', async () => {
+      getRequestHandler().reply(400);
 
       const handleResponse = jest.fn((res) => res.data);
       const handleAxiosError = jest.fn((error) => error.isAxiosError);
       const handleError = jest.fn((error) => error);
 
-      await axios
-        .post('/api/join-us')
+      await getTarget()
         .then(handleResponse)
-        .catch(captureAxiosError(handleAxiosError))
+        .catchAxiosError(handleAxiosError)
         .catch(handleError);
 
       expect(handleResponse).not.toHaveBeenCalled();
@@ -38,39 +72,18 @@ describe('captures', () => {
       expect(handleAxiosError).toHaveReturnedWith(true);
     });
 
-    test('略過非 AxiosError 不處理', async () => {
-      mock.onPost('/api/join-us').reply(200);
-
-      const handleAxiosError = jest.fn((error) => error.isAxiosError);
-      const handleError = jest.fn((error) => error);
-
-      await axios
-        .post('/api/join-us')
-        .then(() => {
-          throw '捕獲這個錯誤吧';
-        })
-        .catch(captureAxiosError(handleAxiosError))
-        .catch(handleError);
-
-      expect(handleAxiosError).not.toHaveBeenCalled();
-      expect(handleError).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('captureStatusCode()', () => {
-    test('基本測試', async () => {
-      mock.onPost('/api/users').reply(403);
+    test('catchStatusCode()', async () => {
+      getRequestHandler().reply(403);
 
       const handleResponse = jest.fn((res) => res.data);
       const handleUnauthorized = jest.fn((error) => error.response.status);
       const handleForbidden = jest.fn((error) => error.response.status);
       const handleError = jest.fn((error) => error);
 
-      await axios
-        .post('/api/users')
+      await getTarget()
         .then(handleResponse)
-        .catch(captureStatusCode(401, handleUnauthorized))
-        .catch(captureStatusCode(403, handleForbidden))
+        .catchStatusCode(401, handleUnauthorized)
+        .catchStatusCode(403, handleForbidden)
         .catch(handleError);
 
       expect(handleResponse).not.toHaveBeenCalled();
@@ -87,33 +100,8 @@ describe('captures', () => {
       );
     });
 
-    test('測試參數為陣列', async () => {
-      mock.onPost('/api/users').reply(403);
-
-      const handlePermissionDenied = jest.fn((error) => error.response.status);
-      const handleError = jest.fn((error) => error);
-
-      await axios
-        .post('/api/users')
-        .catch(captureStatusCode([401, 403], handlePermissionDenied))
-        .catch(handleError);
-
-      expect(handleError).not.toHaveBeenCalled();
-
-      expect(handlePermissionDenied).toHaveBeenCalledTimes(1);
-      expect(handlePermissionDenied).toBeCalledWith(
-        expect.objectContaining({
-          response: expect.objectContaining({
-            status: expect.any(Number)
-          }),
-        })
-      );
-    });
-  });
-
-  describe('captureValidationError()', () => {
-    test('基本測試', async () => {
-      mock.onPost('/api/join-us').reply(422, {
+    test('catchValidationError()', async () => {
+      getRequestHandler().reply(422, {
         message: '缺少必要資料',
         errors: {
           title: '標題不能為空',
@@ -125,10 +113,9 @@ describe('captures', () => {
       const handleValidationError = jest.fn((errorBag) => errorBag.first());
       const handleError = jest.fn((error) => error);
 
-      await axios
-        .post('/api/join-us')
+      await getTarget()
         .then(handleResponse)
-        .catch(captureValidationError(handleValidationError))
+        .catchValidationError(handleValidationError)
         .catch(handleError);
 
       expect(handleResponse).not.toHaveBeenCalled();
@@ -147,4 +134,15 @@ describe('captures', () => {
       expect(handleValidationError).toHaveReturnedWith('標題不能為空');
     });
   });
-});
+}
+
+/**
+ * @callback getTargetCallable
+ * @returns {RestPromise}
+ */
+
+/**
+ * @callback getRequestHandlerCallable
+ * @param {MockAdapter}
+ * @returns {RequestHandler}
+ */

@@ -27,8 +27,7 @@ interface RestFetchAllConfig extends RestGetConfig {
 declare class Rest {
   #resourceURN: string;
   #axios: AxiosInstance;
-  #currentQuery: object;
-  options: RestOptions;
+  #options: RestOptions;
 
   constructor(urn: string, options?: RestOptions);
   fetchAll(params?: object): Promise<AxiosResponse>;

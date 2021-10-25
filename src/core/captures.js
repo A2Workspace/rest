@@ -27,8 +27,6 @@ export function captureAxiosError(handler) {
   };
 }
 
-
-
 /**
  * 捕獲處理指定 http 狀態碼
  *
