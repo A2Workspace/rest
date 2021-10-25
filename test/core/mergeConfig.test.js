@@ -1,4 +1,4 @@
-import mergeConfig, { mergeAccessible } from '../src/core/mergeConfig';
+import mergeConfig, { mergeAccessible } from '../../src/core/mergeConfig';
 
 describe('mergeConfig()', () => {
   test('基本測試', async () => {
