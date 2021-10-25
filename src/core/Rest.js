@@ -1,5 +1,6 @@
 import axios from 'axios';
 import mergeConfig from './mergeConfig';
+import RestPromise from './RestPromise';
 
 export default class Rest {
   #resourceURN;
@@ -39,7 +40,7 @@ export default class Rest {
 
       action.lastQuery = config;
 
-      return this.#axios.request(config);
+      return RestPromise.wrap(this.#axios.request(config));
     };
 
     action.options = actionOptions;
