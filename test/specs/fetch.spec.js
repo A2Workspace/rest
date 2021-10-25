@@ -1,7 +1,7 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import testActionRetunedPromise from './helper/testActionRetunedPromise';
-import rest from '../src/index';
+import testActionRetunedPromise from '../testActionRetunedPromise';
+import rest from '../../src/index';
 
 const mock = new MockAdapter(axios);
 

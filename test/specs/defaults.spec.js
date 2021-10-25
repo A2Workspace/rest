@@ -1,10 +1,10 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import rest from '../src/index';
+import rest from '../../src/index';
 
 const mock = new MockAdapter(axios);
 
-describe('defaults', () => {
+describe('rest.defaults', () => {
   afterEach(() => {
     mock.reset();
   });

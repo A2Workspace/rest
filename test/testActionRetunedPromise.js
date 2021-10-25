@@ -1,4 +1,4 @@
-import RestPromise from '../../src/core/RestPromise';
+import RestPromise from '../src/core/RestPromise';
 
 /**
  *
