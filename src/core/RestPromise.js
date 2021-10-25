@@ -1,4 +1,4 @@
-import { captureAxiosError, captureStatusCode } from './captures';
+import { captureAxiosError, captureStatusCode, captureValidationError } from './captures';
 
 export default class RestPromise extends Promise {
   constructor(executor) {
@@ -16,4 +16,8 @@ export default class RestPromise extends Promise {
   catchValidationError(brief, handler) {
     return this.catch(captureValidationError(brief, handler));
   }
+}
+
+RestPromise.wrap = function (promise) {
+  return this.all([promise]);
 }
