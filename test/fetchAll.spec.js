@@ -1,5 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import testActionRetunedPromise from './helper/testActionRetunedPromise';
 import rest from '../src/index';
 
 const mock = new MockAdapter(axios);
@@ -48,4 +49,14 @@ describe('Rest.fetchAll()', () => {
 
     expect(mock.history.get[1].params).toEqual({ page: 1, sort: 'name' });
   });
+
+  testActionRetunedPromise(
+    '回傳值測試',
+    function getTarget() {
+      return rest('/api/users').fetchAll();
+    },
+    function getRequestHandler() {
+      return mock.onGet('/api/users');
+    }
+  );
 });

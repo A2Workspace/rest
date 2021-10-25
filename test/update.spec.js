@@ -1,5 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import testActionRetunedPromise from './helper/testActionRetunedPromise';
 import rest from '../src/index';
 
 const mock = new MockAdapter(axios);
@@ -24,4 +25,14 @@ describe('Rest.update()', () => {
     expect(mock.history.put[0].data).toEqual(JSON.stringify({ name: 'John' }));
     expect(result.data.status).toBeTruthy();
   });
+
+  testActionRetunedPromise(
+    '回傳值測試',
+    function getTarget() {
+      return rest('/api/users').update(1, { name: 'John' });
+    },
+    function getRequestHandler() {
+      return mock.onPut('/api/users/1');
+    }
+  );
 });

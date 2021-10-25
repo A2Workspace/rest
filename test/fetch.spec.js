@@ -1,5 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import testActionRetunedPromise from './helper/testActionRetunedPromise';
 import rest from '../src/index';
 
 const mock = new MockAdapter(axios);
@@ -9,18 +10,24 @@ describe('Rest.fetch()', () => {
     mock.reset();
   });
 
-  beforeEach(() => {
-    mock.onGet('/api/users/1').reply(200, {
-      name: 'John',
-    });
-  });
-
   test('基本測試', async () => {
-    const $rest = rest('/api/users');
+    mock.onGet('/api/users/1').reply(200, { name: 'John' });
 
-    const result = await $rest.fetch(1);
+    const users = rest('/api/users');
+
+    const result = await users.fetch(1);
 
     expect(mock.history.get[0].url).toEqual('/api/users/1');
     expect(result.data).toEqual({ name: 'John' });
   });
+
+  testActionRetunedPromise(
+    '回傳值測試',
+    function getTarget() {
+      return rest('/api/users').fetch(1);
+    },
+    function getRequestHandler() {
+      return mock.onGet('/api/users/1');
+    }
+  );
 });
