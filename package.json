@@ -2,7 +2,7 @@
   "name": "@a2workspace/rest",
   "version": "0.1.0",
   "description": "綺羅星（<ゝω・）☆",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "types": "types/index.d.ts",
   "author": {
     "name": "Shisha",
