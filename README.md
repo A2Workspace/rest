@@ -29,9 +29,17 @@ async users.fetchAll()
 
 ## 安裝
 
+### Npm
+
 ```bash
 npm install -s git+https://github.com/A2Workspace/rest.git
 ```
+### Yarn
+
+```bash
+yarn add git+https://github.com/A2Workspace/rest.git
+```
+
 
 ## 如何使用
 
